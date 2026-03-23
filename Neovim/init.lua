@@ -42,9 +42,10 @@ vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
 
-  -- LSP Config
+  -- LSP Config and Mason bridge 
   "neovim/nvim-lspconfig",
-
+  
+  
   -- Mason
   {
     "williamboman/mason.nvim",
@@ -53,7 +54,7 @@ require("lazy").setup({
       require("mason").setup()
     end,
   },
-
+  	
   -- Auto Brackets
   {
     "windwp/nvim-autopairs",
@@ -94,6 +95,7 @@ require("lazy").setup({
         })
         end
   },]]
+  -- Neotree
   {
       'nvim-neo-tree/neo-tree.nvim',
       branch = "v3.x",
@@ -103,9 +105,10 @@ require("lazy").setup({
           "MunifTanjim/nui.nvim",
       },
       config = function()
-          vim.keymap.set('n', '<C-q>', ':Neotree filesystem reveal left<CR>', {})
+          vim.keymap.set('n', '<C-q>', ':Neotree toggle left<CR>', { silent = true })
       end
   },
+  -- Lualine
   {
       "nvim-lualine/lualine.nvim",
       config = function()
@@ -116,6 +119,10 @@ require("lazy").setup({
           })
       end
   },
+  -- Vim be good game
+  {
+      'ThePrimeagen/vim-be-good'
+  },
 })
 
 -------------------------------------------------
@@ -124,7 +131,6 @@ require("lazy").setup({
 
 vim.lsp.config("pyright", {})
 vim.lsp.enable("pyright")
-
 vim.lsp.config("clangd", {})
 vim.lsp.enable("clangd")
 
@@ -161,4 +167,7 @@ function LspStatus()
 end
 
 vim.opt.statusline = "%f %m %r %= %{v:lua.LspStatus()} %y %p%% %l:%c"
+
+
+
 
