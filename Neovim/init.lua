@@ -106,6 +106,7 @@ require("lazy").setup({
       },
       config = function()
           vim.keymap.set('n', '<C-q>', ':Neotree toggle left<CR>', { silent = true })
+          vim.keymap.set('n', '<C-z>', ':Neotree focus left<CR>', { silent = true })
       end
   },
   -- Lualine
