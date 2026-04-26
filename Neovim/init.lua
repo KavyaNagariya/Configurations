@@ -13,6 +13,7 @@ vim.opt.smartcase = true
 vim.opt.termguicolors = true
 vim.opt.cursorline = true
 vim.opt.clipboard = "unnamedplus"
+vim.opt.showcmd = true
 
 vim.g.mapleader = " "
 
@@ -206,11 +207,39 @@ local themes = {
     "monokai",
     "nightfox",
 }
+
+local theme_file = vim.fn.stdpath("data") .. "/theme.txt"
 local current_theme = 1
+
+local function load_theme()
+    local f = io.open(theme_file, "r")
+    if f then
+        local saved = f:read("*a")
+        f:close()
+        for i, t in ipairs(themes) do
+            if t == saved then
+                current_theme = i
+                break
+            end
+        end
+    end
+end
+
+local function save_theme()
+    local f = io.open(theme_file, "w")
+    if f then
+        f:write(themes[current_theme])
+        f:close()
+    end
+end
+
+load_theme()
+vim.cmd.colorscheme(themes[current_theme])
 
 vim.keymap.set("n", "<leader>ct", function()
     current_theme = current_theme % #themes + 1
     vim.cmd.colorscheme(themes[current_theme])
+    save_theme()
     vim.notify("Theme: " .. themes[current_theme], vim.log.levels.INFO, { title = "Theme Switcher" })
 end, { noremap = true, silent = true })
 
