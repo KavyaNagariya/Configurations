@@ -140,7 +140,7 @@ require("lazy").setup({
       config = function()
           require('lualine').setup({
             options = {
-              theme = 'dracula'
+              theme = 'auto'
             }
           })
       end
