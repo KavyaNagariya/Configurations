@@ -72,6 +72,31 @@ require("lazy").setup({
           vim.cmd.colorscheme "catppuccin"
       end
   },
+  -- Tokyo Night
+  {
+      "folke/tokyonight.nvim",
+      priority = 1000,
+  },
+  -- Dracula
+  {
+      "Mofiqul/dracula.nvim",
+      priority = 1000,
+  },
+  -- One Dark
+  {
+      "navarasu/onedark.nvim",
+      priority = 1000,
+  },
+  -- Monokai Pro
+  {
+      "tanvirtin/monokai.nvim",
+      priority = 1000,
+  },
+  -- Nightfox
+  {
+      "EdenEast/nightfox.nvim",
+      priority = 1000,
+  },
   -- Telescope
   {
       'nvim-telescope/telescope.nvim', tag = '0.1.5',
@@ -169,6 +194,23 @@ end
 
 vim.opt.statusline = "%f %m %r %= %{v:lua.LspStatus()} %y %p%% %l:%c"
 
+-------------------------------------------------
+-- 7. Theme Switcher
+-------------------------------------------------
 
+local themes = {
+    "catppuccin",
+    "tokyonight",
+    "dracula",
+    "onedark",
+    "monokai",
+    "nightfox",
+}
+local current_theme = 1
 
+vim.keymap.set("n", "<leader>ct", function()
+    current_theme = current_theme % #themes + 1
+    vim.cmd.colorscheme(themes[current_theme])
+    vim.notify("Theme: " .. themes[current_theme], vim.log.levels.INFO, { title = "Theme Switcher" })
+end, { noremap = true, silent = true })
 
