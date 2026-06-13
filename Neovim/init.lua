@@ -20,6 +20,9 @@ vim.g.mapleader = " "
 -- Quick escape using jk
 vim.keymap.set("i", "jk", "<Esc>", { noremap = true, silent = true })
 
+-- Alternative for Visual Block mode (Windows terminals intercept Ctrl+V)
+vim.keymap.set("n", "<leader>v", "<C-v>", { noremap = true, desc = "Visual Block Mode" })
+
 -------------------------------------------------
 -- 2. Lazy.nvim Setup
 -------------------------------------------------
@@ -46,7 +49,6 @@ require("lazy").setup({
   -- LSP Config and Mason bridge 
   "neovim/nvim-lspconfig",
   
-  
   -- Mason
   {
     "williamboman/mason.nvim",
@@ -55,6 +57,29 @@ require("lazy").setup({
       require("mason").setup()
     end,
   },
+
+  {
+    "williamboman/mason-lspconfig.nvim",
+    dependencies = { "williamboman/mason.nvim" },
+    config = function()
+      require("mason-lspconfig").setup({
+        ensure_installed = {
+          "pyright",
+          "clangd",
+          "lua_ls",
+          "rust_analyzer",
+          "ts_ls",
+          "vimls",
+          "zls",
+          "gopls",
+          "html",
+          "cssls",
+        },
+        automatic_installation = true,
+      })
+    end,
+  },
+
   	
   -- Auto Brackets
   {
@@ -100,7 +125,7 @@ require("lazy").setup({
   },
   -- Telescope
   {
-      'nvim-telescope/telescope.nvim', tag = '0.1.5',
+      'nvim-telescope/telescope.nvim', branch = 'master',
       dependencies = {'nvim-lua/plenary.nvim'},
       config = function()
           local builtin = require("telescope.builtin")
@@ -109,18 +134,36 @@ require("lazy").setup({
       end
   },
   -- Treesitter
- --[[ {
-        'nvim-treesitter/nvim-treesitter', 
-         build = ":TSUpdate",
-         config = function()
-            local configs = require("nvim-treesitter.configs")
-            configs.setup({
-                ensure_installed = {"c", "javascript", "python", "lua"},
-            highlight = { enable = true },
-            indent = { enable = true },
-        })
-        end
-  },]]
+  {
+    "nvim-treesitter/nvim-treesitter",
+    build = ":TSUpdate",
+    config = function()
+      local status_ok, configs = pcall(require, "nvim-treesitter.configs")
+      if not status_ok then
+        return
+      end
+      configs.setup({
+        ensure_installed = {
+          "c",
+          "cpp",
+          "python",
+          "lua",
+          "rust",
+          "typescript",
+          "tsx",
+          "javascript",
+          "vim",
+          "vimdoc",
+          "zig",
+          "go",
+          "html",
+          "css",
+        },
+        highlight = { enable = true },
+        indent = { enable = true },
+      })
+    end,
+  },
   -- Neotree
   {
       'nvim-neo-tree/neo-tree.nvim',
@@ -156,10 +199,37 @@ require("lazy").setup({
 -- 4. LSP Configuration
 -------------------------------------------------
 
-vim.lsp.config("pyright", {})
-vim.lsp.enable("pyright")
-vim.lsp.config("clangd", {})
-vim.lsp.enable("clangd")
+-- Configure server-specific settings if needed
+vim.lsp.config("lua_ls", {
+  settings = {
+    Lua = {
+      diagnostics = {
+        globals = { "vim" },
+      },
+      workspace = {
+        library = vim.api.nvim_get_runtime_file("", true),
+      },
+    },
+  },
+})
+
+-- List of servers to enable
+local servers = {
+  "pyright",
+  "clangd",
+  "lua_ls",
+  "rust_analyzer",
+  "ts_ls",
+  "vimls",
+  "zls",
+  "gopls",
+  "html",
+  "cssls",
+}
+
+for _, server in ipairs(servers) do
+  vim.lsp.enable(server)
+end
 
 -------------------------------------------------
 -- 5. LSP Keybindings
