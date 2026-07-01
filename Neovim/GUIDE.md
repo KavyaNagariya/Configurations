@@ -37,7 +37,10 @@ These shortcuts have been configured in your [init.lua](file:///C:/repositories/
 | `<C-z>` | Normal | **Focus Neo-tree** |
 | `<Space>s` | Normal | **Search Files** (Telescope search by filename) |
 | `<Space>fg` | Normal | **Find Grep** (Telescope live search text inside files) |
-| `<Space>ct` | Normal | **Cycle Color Themes** (Switches between Catppuccin, Tokyo Night, Dracula, etc.) |
+| `<Space>ct` | Normal | **Telescope Theme Picker** (Live preview and select installed themes) |
+| `Shift + h` | Normal | **Previous Tab (Buffer)** |
+| `Shift + l` | Normal | **Next Tab (Buffer)** |
+| `<Space>c` | Normal | **Close Current Tab (Buffer)** |
 
 ---
 
@@ -54,6 +57,14 @@ Press these in **Normal Mode** with your cursor on a variable, function, or clas
 | `gr` | **Go to References**: List all places where the symbol is used in your project. |
 | `<Space>rn` | **Rename**: Rename the symbol project-wide safely. |
 | `<Space>ca` | **Code Actions**: List available quick-fixes or refactorings (e.g., auto-import). |
+
+### Autocompletion (Insert Mode)
+When typing code, the autocomplete menu will appear automatically. Use these keys to interact with it:
+* `<Tab>` : Select the next suggestion or expand a snippet.
+* `<Shift + Tab>` : Select the previous suggestion.
+* `<Enter>` : Confirm and insert the currently selected suggestion.
+* `Ctrl + Space` : Manually trigger the autocomplete menu if it was closed.
+* `Ctrl + e` : Close/Abort the autocomplete menu.
 
 ---
 

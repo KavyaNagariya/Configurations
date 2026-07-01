@@ -123,6 +123,29 @@ require("lazy").setup({
       "EdenEast/nightfox.nvim",
       priority = 1000,
   },
+  -- Alpha Dashboard
+  {
+      'goolord/alpha-nvim',
+      dependencies = { 'nvim-tree/nvim-web-devicons' },
+      config = function ()
+          local dashboard = require("alpha.themes.dashboard")
+          require("alpha").setup(dashboard.config)
+      end
+  },
+  -- Kanagawa
+  { "rebelot/kanagawa.nvim", priority = 1000 },
+  -- Rose Pine
+  { "rose-pine/neovim", name = "rose-pine", priority = 1000 },
+  -- Gruvbox
+  { "ellisonleao/gruvbox.nvim", priority = 1000 },
+  -- Ayu
+  { "Shatur/neovim-ayu", priority = 1000 },
+  -- Nord
+  { "shaunsingh/nord.nvim", priority = 1000 },
+  -- Cyberdream
+  { "scottmckendry/cyberdream.nvim", priority = 1000 },
+  -- Oxocarbon
+  { "nyoom-engineering/oxocarbon.nvim", priority = 1000 },
   -- Telescope
   {
       'nvim-telescope/telescope.nvim', branch = 'master',
@@ -189,9 +212,88 @@ require("lazy").setup({
           })
       end
   },
+  -- Bufferline
+  {
+      "akinsho/bufferline.nvim",
+      version = "*",
+      dependencies = "nvim-tree/nvim-web-devicons",
+      config = function()
+          require("bufferline").setup({
+              options = {
+                  diagnostics = "nvim_lsp",
+                  always_show_bufferline = true,
+                  show_buffer_close_icons = false,
+                  show_close_icon = false,
+              }
+          })
+          -- Keymaps for buffer navigation
+          vim.keymap.set("n", "<S-h>", "<Cmd>BufferLineCyclePrev<CR>", { noremap = true, silent = true, desc = "Prev Buffer" })
+          vim.keymap.set("n", "<S-l>", "<Cmd>BufferLineCycleNext<CR>", { noremap = true, silent = true, desc = "Next Buffer" })
+          vim.keymap.set("n", "<leader>c", "<Cmd>bdelete<CR>", { noremap = true, silent = true, desc = "Close Buffer" })
+      end
+  },
   -- Vim be good game
   {
       'ThePrimeagen/vim-be-good'
+  },
+  
+  -- Autocompletion Engine (nvim-cmp)
+  {
+      "hrsh7th/nvim-cmp",
+      dependencies = {
+          "hrsh7th/cmp-nvim-lsp",
+          "hrsh7th/cmp-buffer",
+          "hrsh7th/cmp-path",
+          "hrsh7th/cmp-cmdline",
+          "L3MON4D3/LuaSnip",
+          "saadparwaiz1/cmp_luasnip",
+          "rafamadriz/friendly-snippets",
+      },
+      config = function()
+          local cmp = require("cmp")
+          local luasnip = require("luasnip")
+          require("luasnip.loaders.from_vscode").lazy_load()
+
+          cmp.setup({
+              snippet = {
+                  expand = function(args)
+                      luasnip.lsp_expand(args.body)
+                  end,
+              },
+              mapping = cmp.mapping.preset.insert({
+                  ['<C-b>'] = cmp.mapping.scroll_docs(-4),
+                  ['<C-f>'] = cmp.mapping.scroll_docs(4),
+                  ['<C-Space>'] = cmp.mapping.complete(),
+                  ['<C-e>'] = cmp.mapping.abort(),
+                  ['<CR>'] = cmp.mapping.confirm({ select = true }),
+                  ['<Tab>'] = cmp.mapping(function(fallback)
+                      if cmp.visible() then
+                          cmp.select_next_item()
+                      elseif luasnip.expand_or_jumpable() then
+                          luasnip.expand_or_jump()
+                      else
+                          fallback()
+                      end
+                  end, { "i", "s" }),
+                  ['<S-Tab>'] = cmp.mapping(function(fallback)
+                      if cmp.visible() then
+                          cmp.select_prev_item()
+                      elseif luasnip.jumpable(-1) then
+                          luasnip.jump(-1)
+                      else
+                          fallback()
+                      end
+                  end, { "i", "s" }),
+              }),
+              sources = cmp.config.sources({
+                  { name = 'nvim_lsp' },
+                  { name = 'luasnip' },
+              }, {
+                  { name = 'buffer' },
+                  { name = 'path' },
+              })
+          })
+      end
   },
 })
 
@@ -227,7 +329,17 @@ local servers = {
   "cssls",
 }
 
+local capabilities = nil
+local status_ok, cmp_nvim_lsp = pcall(require, "cmp_nvim_lsp")
+if status_ok then
+  capabilities = cmp_nvim_lsp.default_capabilities()
+end
+
 for _, server in ipairs(servers) do
+  -- Hook up nvim-cmp completion capabilities
+  if capabilities then
+      vim.lsp.config(server, { capabilities = capabilities })
+  end
   vim.lsp.enable(server)
 end
 
@@ -266,50 +378,53 @@ end
 vim.opt.statusline = "%f %m %r %= %{v:lua.LspStatus()} %y %p%% %l:%c"
 
 -------------------------------------------------
--- 7. Theme Switcher
+-- 7. Theme Switcher (Telescope)
 -------------------------------------------------
 
-local themes = {
-    "catppuccin",
-    "tokyonight",
-    "dracula",
-    "onedark",
-    "monokai",
-    "nightfox",
-}
-
 local theme_file = vim.fn.stdpath("data") .. "/theme.txt"
-local current_theme = 1
 
 local function load_theme()
     local f = io.open(theme_file, "r")
     if f then
         local saved = f:read("*a")
         f:close()
-        for i, t in ipairs(themes) do
-            if t == saved then
-                current_theme = i
-                break
-            end
+        saved = saved:gsub("%s+", "")
+        if saved ~= "" then
+            pcall(vim.cmd.colorscheme, saved)
+            return
         end
     end
-end
-
-local function save_theme()
-    local f = io.open(theme_file, "w")
-    if f then
-        f:write(themes[current_theme])
-        f:close()
-    end
+    vim.cmd.colorscheme("catppuccin")
 end
 
 load_theme()
-vim.cmd.colorscheme(themes[current_theme])
 
 vim.keymap.set("n", "<leader>ct", function()
-    current_theme = current_theme % #themes + 1
-    vim.cmd.colorscheme(themes[current_theme])
-    save_theme()
-    vim.notify("Theme: " .. themes[current_theme], vim.log.levels.INFO, { title = "Theme Switcher" })
-end, { noremap = true, silent = true })
+    require("telescope.builtin").colorscheme({
+        enable_preview = true,
+        attach_mappings = function(prompt_bufnr, map)
+            local actions = require("telescope.actions")
+            local action_state = require("telescope.actions.state")
+
+            local function save_and_apply(bufnr)
+                local selection = action_state.get_selected_entry()
+                actions.close(bufnr)
+                if selection then
+                    local theme = selection.value
+                    vim.cmd.colorscheme(theme)
+                    local f = io.open(theme_file, "w")
+                    if f then
+                        f:write(theme)
+                        f:close()
+                    end
+                    vim.notify("Theme set to: " .. theme, vim.log.levels.INFO)
+                end
+            end
+
+            map("i", "<CR>", save_and_apply)
+            map("n", "<CR>", save_and_apply)
+            return true
+        end
+    })
+end, { noremap = true, silent = true, desc = "Theme Switcher" })
 
