@@ -197,6 +197,14 @@ require("lazy").setup({
           "MunifTanjim/nui.nvim",
       },
       config = function()
+          require("neo-tree").setup({
+              window = {
+                  mappings = {
+                      ["v"] = "open_vsplit",
+                      ["s"] = "open_split",
+                  }
+              }
+          })
           vim.keymap.set('n', '<C-q>', ':Neotree toggle left<CR>', { silent = true })
           vim.keymap.set('n', '<C-z>', ':Neotree focus left<CR>', { silent = true })
       end
@@ -222,8 +230,8 @@ require("lazy").setup({
               options = {
                   diagnostics = "nvim_lsp",
                   always_show_bufferline = true,
-                  show_buffer_close_icons = false,
-                  show_close_icon = false,
+                  show_buffer_close_icons = true,
+                  show_close_icon = true,
               }
           })
           -- Keymaps for buffer navigation

@@ -86,8 +86,19 @@ Manage your plugins and language servers using these commands in Command Mode (p
 ## 5. Advanced Editing & Window Management
 
 ### Opening Multiple Files & Terminals
-Neovim can handle multiple files simultaneously using **splits** and **terminals**. Use Command Mode (`:`):
+Neovim can handle multiple files simultaneously using **splits** and **terminals**. 
 
+**1. Using the Neo-tree Sidebar:**
+When hovering over a file in Neo-tree:
+* Press `v` to open it in a **Vertical Split**.
+* Press `s` to open it in a **Horizontal Split**.
+
+**2. Using Telescope (`<Space>s` or `<Space>fg`):**
+When selecting a file in the search results:
+* Press `Ctrl + v` to open it in a **Vertical Split**.
+* Press `Ctrl + x` to open it in a **Horizontal Split**.
+
+**3. Using Command Mode:**
 | Action | Command |
 | :--- | :--- |
 | **Open a new file** | `:e filename` |
