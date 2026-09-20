@@ -221,8 +221,6 @@ require("lazy").setup({
   { "shaunsingh/nord.nvim", priority = 1000 },
   -- Cyberdream
   { "scottmckendry/cyberdream.nvim", priority = 1000 },
-  -- Oxocarbon
-  { "nyoom-engineering/oxocarbon.nvim", priority = 1000 },
   -- Telescope
   {
       'nvim-telescope/telescope.nvim', branch = 'master',
@@ -380,7 +378,12 @@ require("lazy").setup({
           })
       end
   },
+}, {
+  rocks = {
+    enabled = false,
+  },
 })
+
 
 -------------------------------------------------
 -- 4. LSP Configuration
