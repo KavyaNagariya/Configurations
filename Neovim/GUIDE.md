@@ -114,19 +114,63 @@ Once you have multiple windows (splits or terminals) open side-by-side, you can 
   * `<C-w> k` : Move to the Top pane
   * `<C-w> l` : Move to the Right pane
 
-### Multi-line Commenting & Editing (Visual Block Mode)
+### Multi-line Commenting & Uncommenting
+
+Neovim has built-in language-aware commenting (`gc`), which automatically knows which comment symbols to use for each language (`#` for Python/Bash, `//` for C/JS/Rust/Go, `--` for Lua, `<!-- -->` for HTML).
+
+#### The Fastest Way (Visual Selection):
+1. Press `V` (Shift + v) in Normal Mode to enter **Visual Line Mode**.
+2. Use `j` and `k` to select the lines you want to comment or uncomment.
+3. Press `gc`:
+   * If the lines are uncommented, it **comments** all of them.
+   * If the lines are already commented, it **uncomments** all of them!
+
+#### From Normal Mode:
+* `gcc` : Toggle comment/uncomment for the current line.
+* `gc3j` : Comment/uncomment current line plus 3 lines down (4 lines total).
+* `gcap` : Comment/uncomment the entire current paragraph/block.
+* `gbc` : Toggle a block comment on the current line.
+
+#### Alternative: Visual Block Mode (`<Space>v`)
+If you want to manually insert or delete specific characters in a column:
+1. Put cursor on the first line and press `<Space>v` to enter Visual Block Mode.
+2. Press `j` to highlight down the column.
+3. **To Comment**: Press `I` (Shift + i), type your comment prefix (e.g. `# `), then press `<Esc>`.
+4. **To Uncomment**: Select the comment characters with `j` and `l`, then press `x` or `d` to delete them.
+
+---
+
+### Tabbing & Untabbing Multiple Lines (Indenting / Outdenting)
+
+You can easily shift indentation of single or multiple lines:
+
+#### 1. In Visual Mode (Multiple Lines at Once)
+1. In Normal Mode, press `V` (Shift + v) to enter **Visual Line Mode**.
+2. Select lines using `j` (down) and `k` (up).
+3. **To Tab (Indent Right)**: Press `>`.
+4. **To Untab (Indent Left)**: Press `<`.
+> [!TIP]
+> Your configuration keeps the visual selection active after pressing `>` or `<`. This allows you to press `>` or `<` repeatedly to tab or untab by multiple levels without having to reselect the lines! Press `<Esc>` when done.
+
+#### 2. In Normal Mode
+* `>>` : Tab / indent the current line.
+* `<<` : Untab / unindent the current line.
+* `>3j` : Tab / indent 4 lines (current line + 3 lines below).
+* `<3j` : Untab / unindent 4 lines.
+* `.` : Repeat the last indent / untab command on another line.
+
+#### 3. In Insert Mode (While Typing)
+* `Ctrl + t` : Tab / indent the current line forward.
+* `Ctrl + d` : Untab / unindent the current line backward.
+
+---
+
+### Multi-line Column Editing (Visual Block Mode)
 Because Windows terminals often intercept `Ctrl+v` for pasting, you have a custom mapping: press `<Space>v` in Normal Mode to enter **Visual Block Mode**.
 
-**How to Multi-line Comment:**
-1. Put your cursor on the first line you want to comment (ensure you are in Normal mode).
-2. Press `<Space>v` to enter Visual Block Mode.
-3. Press `j` to select downwards across the lines you want to comment.
-4. Press `I` (Shift + i) to enter Insert mode at the beginning of the block.
-5. Type your comment character (e.g., `# ` or `// `).
-6. Press `<Esc>`. *Neovim will magically apply the comment to all selected lines!*
-
-**How to Change Multiple Lines Simultaneously:**
+**How to Change / Replace Multiple Lines Simultaneously:**
 1. Select the block of text you want to replace using `<Space>v` and movement keys (`h, j, k, l`).
 2. Press `c` to "change" the text. The selected text will disappear and you will enter Insert mode.
 3. Type your new replacement text.
-4. Press `<Esc>`. *The change is instantly applied to all lines.*
+4. Press `<Esc>`. *The change is instantly applied across all selected lines.*
+
