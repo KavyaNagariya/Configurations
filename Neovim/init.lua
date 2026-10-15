@@ -23,10 +23,6 @@ vim.keymap.set("i", "jk", "<Esc>", { noremap = true, silent = true })
 -- Alternative for Visual Block mode (Windows terminals intercept Ctrl+V)
 vim.keymap.set("n", "<leader>v", "<C-v>", { noremap = true, desc = "Visual Block Mode" })
 
--- Better indenting in Visual Mode (keep selection when tabbing/untabbing)
-vim.keymap.set("v", "<", "<gv", { noremap = true, silent = true, desc = "Indent left and keep selection" })
-vim.keymap.set("v", ">", ">gv", { noremap = true, silent = true, desc = "Indent right and keep selection" })
-
 -------------------------------------------------
 -- 2. Lazy.nvim Setup
 -------------------------------------------------
@@ -125,10 +121,14 @@ require("lazy").setup({
                 lua = { "stylua" },
                 python = { "isort", "black" },
             },
-            format_on_save = {
-                timeout_ms = 500,
-                lsp_fallback = true,
-            },
+            format_on_save = function(bufnr)
+                -- Stop clangd from auto-formatting C and C++ files on save
+                local ignore_filetypes = { "c", "cpp" }
+                if vim.tbl_contains(ignore_filetypes, vim.bo[bufnr].filetype) then
+                    return
+                end
+                return { timeout_ms = 500, lsp_fallback = true }
+            end,
         },
     },
 
