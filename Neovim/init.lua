@@ -14,6 +14,11 @@ vim.opt.termguicolors = true
 vim.opt.cursorline = true
 vim.opt.clipboard = "unnamedplus"
 vim.opt.showcmd = true
+vim.opt.showtabline = 2           -- Always show tabline so bufferline is always visible
+vim.opt.fillchars = { eob = " " } -- Hide ugly '~' tilde on empty lines
+vim.opt.signcolumn = "yes"        -- Keep sign column stable
+vim.opt.splitright = true         -- Vertical splits open to the right
+vim.opt.splitbelow = true         -- Horizontal splits open below
 
 vim.g.mapleader = " "
 
@@ -22,6 +27,21 @@ vim.keymap.set("i", "jk", "<Esc>", { noremap = true, silent = true })
 
 -- Alternative for Visual Block mode (Windows terminals intercept Ctrl+V)
 vim.keymap.set("n", "<leader>v", "<C-v>", { noremap = true, desc = "Visual Block Mode" })
+
+-- Auto-close empty [No Name] buffer when opening a real file
+vim.api.nvim_create_autocmd("BufReadPost", {
+    callback = function()
+        for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+            if vim.api.nvim_buf_is_loaded(bufnr)
+               and vim.api.nvim_buf_get_name(bufnr) == ""
+               and vim.bo[bufnr].buftype == ""
+               and not vim.bo[bufnr].modified
+               and bufnr ~= vim.api.nvim_get_current_buf() then
+                vim.api.nvim_buf_delete(bufnr, { force = true })
+            end
+        end
+    end,
+})
 
 -------------------------------------------------
 -- 2. Lazy.nvim Setup
@@ -177,8 +197,21 @@ require("lazy").setup({
         name = "catppuccin",
         priority = 1000,
         config = function()
-            require("catppuccin").setup()
-            vim.cmd.colorscheme "catppuccin"
+            require("catppuccin").setup({
+                flavour = "mocha",
+                transparent_background = false,
+                integrations = {
+                    neotree = true,
+                    telescope = true,
+                    treesitter = true,
+                    bufferline = true,
+                    indent_blankline = {
+                        enabled = true,
+                        colored_indent_levels = false,
+                    },
+                },
+            })
+            vim.cmd.colorscheme "catppuccin-mocha"
         end
     },
     -- Tokyo Night
@@ -233,9 +266,54 @@ require("lazy").setup({
         branch = 'master',
         dependencies = { 'nvim-lua/plenary.nvim' },
         config = function()
+            local telescope = require("telescope")
             local builtin = require("telescope.builtin")
-            vim.keymap.set("n", "<leader>s", builtin.find_files, {})
-            vim.keymap.set("n", "<leader>fg", builtin.live_grep, {})
+
+            telescope.setup({
+                defaults = {
+                    file_ignore_patterns = {
+                        "venv/",
+                        "venv/.*",
+                        "^venv/",
+                        "%.venv/",
+                        "%.venv/.*",
+                        "^%.venv/",
+                        "node_modules/",
+                        "node_modules/.*",
+                        "^node_modules/",
+                        "%.git/",
+                        "%.git/.*",
+                        "^%.git/",
+                        "__pycache__/",
+                        "__pycache__/.*",
+                        "^__pycache__/",
+                        "%.cache/",
+                        "build/",
+                        "dist/",
+                        "%.lock$",
+                    },
+                    path_display = { "truncate" },
+                },
+                pickers = {
+                    find_files = {
+                        -- Use ripgrep to prune directories directly at the filesystem level.
+                        -- This prevents searching thousands of venv/node_modules files and eliminates lag!
+                        find_command = {
+                            "rg",
+                            "--files",
+                            "--hidden",
+                            "--glob", "!**/.git/*",
+                            "--glob", "!**/venv/*",
+                            "--glob", "!**/.venv/*",
+                            "--glob", "!**/node_modules/*",
+                            "--glob", "!**/__pycache__/*",
+                        },
+                    },
+                },
+            })
+
+            vim.keymap.set("n", "<leader>s", builtin.find_files, { desc = "Find Files" })
+            vim.keymap.set("n", "<leader>fg", builtin.live_grep, { desc = "Live Grep" })
         end
     },
     -- Treesitter
@@ -280,15 +358,84 @@ require("lazy").setup({
         },
         config = function()
             require("neo-tree").setup({
+                close_if_last_window = true,
+                popup_border_style = "rounded",
+                enable_git_status = true,
+                enable_diagnostics = false,
+                source_selector = {
+                    winbar = false,
+                    statusline = false,
+                },
+                default_component_configs = {
+                    indent = {
+                        indent_size = 2,
+                        padding = 1,
+                        with_markers = true,
+                        indent_marker = "│",
+                        last_indent_marker = "└",
+                        highlight = "NeoTreeIndentMarker",
+                    },
+                    icon = {
+                        folder_closed = "",
+                        folder_open = "",
+                        folder_empty = "󰜌",
+                    },
+                    git_status = {
+                        symbols = {
+                            added     = "",
+                            modified  = "",
+                            deleted   = "✖",
+                            renamed   = "󰁕",
+                            untracked = "",
+                            ignored   = "",
+                            unstaged  = "󰄱",
+                            staged    = "",
+                            conflict  = "",
+                        },
+                    },
+                },
                 window = {
+                    width = 30,
                     mappings = {
                         ["v"] = "open_vsplit",
                         ["s"] = "open_split",
-                    }
-                }
+                    },
+                },
+                filesystem = {
+                    hijack_netrw_behavior = "open_current",
+                    filtered_items = {
+                        visible = false,
+                        hide_dotfiles = false,
+                        hide_gitignored = false,
+                        hide_by_name = {
+                            ".git",
+                            "node_modules",
+                            "__pycache__",
+                        },
+                    },
+                    follow_current_file = {
+                        enabled = true,
+                    },
+                    use_libuv_file_watcher = true,
+                },
             })
             vim.keymap.set('n', '<C-q>', ':Neotree toggle left<CR>', { silent = true })
             vim.keymap.set('n', '<C-z>', ':Neotree focus left<CR>', { silent = true })
+
+            -- Auto-open Neo-tree in full window (no writing split) when opening a folder without files
+            vim.api.nvim_create_autocmd("VimEnter", {
+                callback = function(data)
+                    local is_dir = vim.fn.isdirectory(data.file) == 1
+                    if is_dir then
+                        vim.cmd.cd(data.file)
+                        vim.cmd("Neotree current")
+                        return
+                    end
+                    if vim.fn.argc() == 0 then
+                        vim.cmd("Neotree current")
+                    end
+                end,
+            })
         end
     },
     -- Lualine
@@ -297,8 +444,31 @@ require("lazy").setup({
         config = function()
             require('lualine').setup({
                 options = {
-                    theme = 'auto'
-                }
+                    theme = 'auto',
+                    component_separators = '',
+                    section_separators = '',
+                    disabled_filetypes = {
+                        statusline = { 'neo-tree', 'alpha' },
+                    },
+                },
+                sections = {
+                    lualine_a = { 'mode' },
+                    lualine_b = {
+                        {
+                            'filename',
+                            symbols = {
+                                modified = ' [+]',
+                                readonly = ' [-]',
+                                unnamed = '', -- Don't show [No Name] in statusline
+                                newfile = ' [New]',
+                            },
+                        },
+                    },
+                    lualine_c = { 'branch' },
+                    lualine_x = { 'encoding', 'fileformat' },
+                    lualine_y = {},
+                    lualine_z = { 'location' },
+                },
             })
         end
     },
@@ -313,8 +483,35 @@ require("lazy").setup({
                     diagnostics = "nvim_lsp",
                     always_show_bufferline = true,
                     show_buffer_close_icons = true,
-                    show_close_icon = true,
-                }
+                    show_close_icon = false,
+                    separator_style = "thin",
+                    offsets = {
+                        {
+                            filetype = "neo-tree",
+                            text = "File Explorer",
+                            highlight = "Directory",
+                            text_align = "left",
+                            separator = true,
+                        },
+                    },
+                    custom_filter = function(buf_number)
+                        local name = vim.api.nvim_buf_get_name(buf_number)
+                        local ft = vim.bo[buf_number].filetype
+                        if ft == "neo-tree" or vim.fn.isdirectory(name) == 1 then
+                            return false
+                        end
+                        -- Show buffer if it has a real file name
+                        if name ~= "" then
+                            return true
+                        end
+                        -- Show unnamed buffer only if user typed unsaved content into it
+                        if vim.bo[buf_number].modified then
+                            return true
+                        end
+                        -- Otherwise hide empty [No Name] scratch buffer
+                        return false
+                    end,
+                },
             })
             -- Keymaps for buffer navigation
             vim.keymap.set("n", "<S-h>", "<Cmd>BufferLineCyclePrev<CR>",
@@ -471,7 +668,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
 function LspStatus()
     local clients = vim.lsp.get_clients({ bufnr = 0 })
     if next(clients) == nil then
-        return "No LSP"
+        return ""
     end
     local msg = ""
     for _, client in ipairs(clients) do
@@ -480,7 +677,8 @@ function LspStatus()
     return "LSP: " .. msg
 end
 
-vim.opt.statusline = "%f %m %r %= %{v:lua.LspStatus()} %y %p%% %l:%c"
+-- Lualine automatically manages the statusline cleanly
+-- vim.opt.statusline is kept commented out to prevent conflict with lualine
 
 -------------------------------------------------
 -- 7. Theme Switcher (Telescope)
